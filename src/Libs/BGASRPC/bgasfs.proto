@@ -1,0 +1,139 @@
+//
+// bgasfs.proto
+//
+// Copyright (C) 2017-2020 Tactical Computing Laboratories, LLC
+// All Rights Reserved
+// contact@tactcomplabs.com
+//
+// See LICENSE in the top level directory for licensing details
+//
+
+syntax="proto3";
+
+package bgasfsmsg;
+
+option java_multiple_files = true;
+option java_package = "io.grpc.bgasfsmsg";
+option java_outer_classname = "BGASFSMsg";
+option objc_class_prefix = "BGASFS";
+
+// ------------ RPC Handlers
+service BGASFSMsg {
+  // Client ==> MDS: Request a file attribute
+  rpc ClientRqstFileAttr(FileAttrRqstMsg) returns (FileAttrRspMsg) {}
+
+  // Client ==> MDS: Update a file attribute
+  rpc ClientRqstUpdateFileAttr(UpdateFileAttrRqstMsg) returns (UpdateFileAttrRspMsg) {}
+
+  // Client ==> MDS: Initiate an I/O request
+  rpc ClientRqstIO(FileIORqstMsg) returns (FileIORspMsg) {}
+
+  // Client ==> DataServer: Initiate a read request
+  rpc ClientReadRqst(ClientIOReadRqstMsg) returns (ClientIOReadRspMsg) {}
+
+  // Client ==> DataServer: Initiate a write request
+  rpc ClientWriteRqst(ClientIOWriteRqstMsg) returns (ClientIOWriteRspMsg) {}
+
+  // MDS ==> DataServer: Initiate a prefetch request
+  rpc MDSDataPrefetch(DataPrefetchRqstMsg) returns (DataPrefetchRspMsg) {}
+}
+
+// ------------ CLIENT ==> MDS MESSAGES
+// -- File Attribute Request
+message FileAttrRqstMsg {
+  string file       = 1;      // FileAttrRqstMsg: Path to the file requested
+}
+
+// -- File Attribute Response
+message FileAttrRspMsg {
+  string file       = 1;      // FileAttrRspMsg: Path to the file requested
+  uint32 v_st_dev     = 2;    // FileAttrRspMsg: ID of device containing the file
+  uint32 v_st_mode    = 3;    // FileAttrRspMsg: File mode
+  uint32 v_st_nlink   = 4;    // FileAttrRspMsg: Number of hard links
+  uint32 v_st_uid     = 5;    // FileAttrRspMsg: User ID of the owner
+  uint32 v_st_gid     = 6;    // FileAttrRspMsg: Group ID of the owner
+  uint32 v_st_rdev    = 7;    // FileAttrRspMsg: Device ID (IFF special file)
+  uint64 v_st_size    = 8;    // FileAttrRspMsg: Total size in bytes
+  uint32 v_st_blksize = 9;    // FileAttrRspMsg: Number of 512B blocks allocated
+  uint64 v_st_atime   = 10;   // FileAttrRspMsg: Time of last access
+  uint64 v_st_mtime   = 11;   // FileAttrRspMsg: Time of last modification
+  uint64 v_st_ctime   = 12;   // FileAttrRspMsg: Time of last status change
+}
+
+// -- Update File Attribute Request
+message UpdateFileAttrRqstMsg {
+  string file       = 1;      // UpdateFileAttrRqstMsg: Path to the file requested
+  uint32 v_st_dev     = 2;    // UpdateFileAttrRqstMsg: ID of device containing the file
+  uint32 v_st_mode    = 3;    // UpdateFileAttrRqstMsg: File mode
+  uint32 v_st_nlink   = 4;    // UpdateFileAttrRqstMsg: Number of hard links
+  uint32 v_st_uid     = 5;    // UpdateFileAttrRqstMsg: User ID of the owner
+  uint32 v_st_gid     = 6;    // UpdateFileAttrRqstMsg: Group ID of the owner
+  uint32 v_st_rdev    = 7;    // UpdateFileAttrRqstMsg: Device ID (IFF special file)
+  uint64 v_st_size    = 8;    // UpdateFileAttrRqstMsg: Total size in bytes
+  uint32 v_st_blksize = 9;    // UpdateFileAttrRqstMsg: Number of 512B blocks allocated
+  uint64 v_st_atime   = 10;   // UpdateFileAttrRqstMsg: Time of last access
+  uint64 v_st_mtime   = 11;   // UpdateFileAttrRqstMsg: Time of last modification
+  uint64 v_st_ctime   = 12;   // UpdateFileAttrRqstMsg: Time of last status change
+}
+
+// -- Update File Attribute Response
+message UpdateFileAttrRspMsg {
+  bool success      = 1;      // UpdateFileAttrRspMsg: Was the request successful? 
+}
+
+// -- File I/O Request
+message FileIORqstMsg {
+  string file       = 1;      // FileIORqstMsg: Path to the file requested for I/O
+  bool write        = 2;      // FileIORqstMsg: Is this request a write request?
+}
+
+// -- File I/O Response
+message FileIORspMsg {
+  string server     = 1;      // FileIORspMsg: Name of the data server
+  uint64 len        = 2;      // FileIORspMsg: Number of bytes in the file
+  bool success      = 3;      // FileIORspMsg: Was the request successful?
+}
+
+// ------------ CLIENT ==> DATA STORE MESSAGES
+// -- Client Read Request
+message ClientIOReadRqstMsg {
+  string file       = 1;      // ClientIOReadRqstMsg: Path to the file requested for I/O
+  uint64 offset     = 2;      // ClientIOReadRqstmsg: Starting offset to read from
+  uint64 len        = 3;      // ClientIOReadRqstMsg: Number of bytes to read
+}
+
+// -- Client Read Response
+message ClientIOReadRspMsg {
+  string file       = 1;      // ClientIOReadRqstMsg: Path to the file requested for I/O
+  // TODO : data payload
+}
+
+// -- Client Write Request
+message ClientIOWriteRqstMsg {
+  string file       = 1;      // ClientIOWriteRqstMsg: Path to the file requested for I/O
+  uint64 offset     = 2;      // ClientIOWriteRqstmsg: Starting offset to write to
+  uint64 len        = 3;      // ClientIOWriteRqstMsg: Number of bytes to write
+  // TODO : data payload
+}
+
+// -- Client Write Response
+message ClientIOWriteRspMsg {
+  string file       = 1;      // ClientIOWriteRspMsg: Path to the file requested for I/O
+  bool success      = 2;      // ClientIOWriteRspMsg: Was the request successful?
+}
+
+// ------------ MDS ==> DATA STORE MESSAGES
+// -- Data Storage Prefetch Request
+message DataPrefetchRqstMsg {
+  string file       = 1;      // DataPrefetchRqstMsg: Path to the file to prefetch
+  uint64 offset     = 2;      // DataPrefetchRqstMsg: Starting offset to prefetch
+  uint64 len        = 3;      // DataPrefetchRqstMsg: Number of bytes to prefetch
+}
+
+// -- Data Storage Prefetch Response
+message DataPrefetchRspMsg {
+  string file       = 1;      // DataPrefetchRspMsg: Path to the file to prefetch
+  bool success      = 2;      // DataPrefetchRspMsg: Was the request successful? 
+}
+
+// EOF
