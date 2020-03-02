@@ -18,7 +18,9 @@ set(BGASRPCSrcs
 
 include_directories(.)
 include_directories(/usr/local/include)
+include_directories(${GRPC_INCLUDE_PATH})
 link_directories(/usr/local/lib)
+link_directories(${GRPC_LIB_PATH})
 
 add_library(BGASRPC ${BGASRPCSrcs})
 target_link_libraries(BGASRPC protobuf grpc++ grpc++_reflection dl)

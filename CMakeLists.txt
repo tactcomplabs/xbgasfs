@@ -27,6 +27,18 @@ if(NOT BGASFS_INCLUDE_PATH)
   message(STATUS "BGASFS_INCLUDE_PATH set to ${BGASFS_INCLUDE_PATH}")
 endif()
 
+# Set the gRPC paths
+if(NOT GRPC_INSTALL_PATH)
+  set(GRPC_LIB_PATH "/usr/local/lib")
+  set(GRPC_INCLUDE_PATH "/usr/local/include")
+else()
+  set(GRPC_LIB_PATH "${GRPC_INSTALL_PATH}/lib")
+  set(GRPC_INCLUDE_PATH "${GRPC_INSTALL_PATH}/include")
+endif()
+
+message(STATUS "GRPC_LIB_PATH set to ${GRPC_LIB_PATH}")
+message(STATUS "GRPC_INCLUDE_PATH set to ${GRPC_INCLUDE_PATH}")
+
 # Find Doxygen
 find_package(Doxygen)
 option(BUILD_DOCUMENTATION "Create and install the doxygen-ized API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
