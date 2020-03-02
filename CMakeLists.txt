@@ -8,8 +8,24 @@
 # See LICENSE in the top level directory for licensing details
 #
 
+#------------------------------------------------------------------------
+#-- CMAKE PROJECT INFO
+#------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.4.3)
 project(bgasfs)
+
+#------------------------------------------------------------------------
+#-- EXTERNAL CMAKE SCRIPTS
+#------------------------------------------------------------------------
+set(CMAKE_MODULE_PATH
+  "${CMAKE_SOURCE_DIR}/cmake"
+  ${CMAKE_MODULE_PATH}
+)
+include(UseLATEX OPTIONAL)
+
+#------------------------------------------------------------------------
+#-- COMPILER OPTIONS
+#------------------------------------------------------------------------
 
 # Require C++11
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -D_THREAD_SAFE")
@@ -39,17 +55,35 @@ endif()
 message(STATUS "GRPC_LIB_PATH set to ${GRPC_LIB_PATH}")
 message(STATUS "GRPC_INCLUDE_PATH set to ${GRPC_INCLUDE_PATH}")
 
+# Check for memory sanity checks
+if(XBGASFS_MEMORY_SANITY)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    message(STATUS "Memory sanitizier is suitable for use with Clang")
+  elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+    message(STATUS "Memory sanitizier is suitable for use with AppleClang")
+  else()
+    message(FATAL_ERROR "Clang is required to build using memory sanitizer.")
+  endif()
+  unset(CMAKE_CXX_FLAGS)
+  set(CMAKE_CXX_FLAGS "-std=c++11 -D_THREAD_SAFE -O1 -g -Wall -stdlib=libc++ -fsanitize=address -fno-omit-frame-pointer")
+  message(STATUS "CMAKE_CXX_FLAGS set to ${CMAKE_CXX_FLAGS}")
+endif()
+
+#------------------------------------------------------------------------
+#-- EXTERNAL PACKAGES
+#------------------------------------------------------------------------
 # Find Doxygen
 find_package(Doxygen)
 option(BUILD_DOCUMENTATION "Create and install the doxygen-ized API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
 
-# Enable testing
+#------------------------------------------------------------------------
+#-- TESTING
+#------------------------------------------------------------------------
 enable_testing()
 
-# Add subdirectories
-add_subdirectory(src)
-#add_subdirectory(test)
-
+#------------------------------------------------------------------------
+#-- DOCUMENTATION
+#------------------------------------------------------------------------
 # Doxygen config
 if(BUILD_DOCUMENTATION)
   if( NOT DOXYGEN_FOUND)
@@ -68,7 +102,9 @@ if(BUILD_DOCUMENTATION)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen/man DESTINATION share/man)
 endif()
 
-# ------------ BEGIN PACKAGING
+#------------------------------------------------------------------------
+#-- PACKAGING OPTIONS
+#------------------------------------------------------------------------
 if(BUILD_DEB)
   SET(CPACK_GENERATOR "DEB")
   SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "John Leidel: jleidel@tactcomplabs.com")
@@ -88,6 +124,12 @@ if(BUILD_SRC)
   SET(CPACK_PACKAGE_VERSION_PATCH "1")
   INCLUDE(CPack)
 endif()
-# ------------ END PACKAGING
+
+
+#------------------------------------------------------------------------
+#-- SUBDIRECTORIES
+#------------------------------------------------------------------------
+add_subdirectory(src)
+#add_subdirectory(test)
 
 # EOF
