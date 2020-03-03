@@ -28,6 +28,10 @@ target_link_libraries(BGASRPC ${PROTOBUF_LIBRARY} grpc++ grpc++_reflection dl)
 set_target_properties(BGASRPC PROPERTIES LINKER_LANGUAGE CXX)
 
 install(TARGETS BGASRPC ARCHIVE DESTINATION lib)
+install(DIRECTORY "."
+        DESTINATION "include/BGASRPC"
+        FILES_MATCHING
+        PATTERN "*.hpp")
 
 add_subdirectory(proto)
 

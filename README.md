@@ -61,6 +61,10 @@ export CXX=clang++
 ### Documentation Options
 * -DBUILD\_DOCUMENTATION=ON  : Enables Doxygenized documentaition.  ``make doc`` will build the documentation (requires Doxygen to be installed)
 
+## Developer Options
+* -DXBGASFS\_MEMORY\_SANITY=ON : Enables the Clang memory sanitization tests.  You must be using ``clang`` as your your C++ compiler
+
+
 ### Test Options
 * -DBUILD\_ALL\_TESTING=ON : Enable ALL unit tests for CoreGen
 

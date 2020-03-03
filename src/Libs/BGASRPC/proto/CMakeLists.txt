@@ -45,5 +45,13 @@ add_custom_command(
 
 
 ADD_LIBRARY(ProtoObjs OBJECT ${PROTO_SRCS} ${PROTO_HDRS} ${hw_grpc_srcs} ${hw_grpc_hdrs})
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        DESTINATION "include/BGASRPC/proto"
+        FILES_MATCHING
+        PATTERN "*.h")
+install(DIRECTORY ${XBGASFS_BINARY_INCLUDE_PATH}
+        DESTINATION "include/BGASRPC/proto"
+        FILES_MATCHING
+        PATTERN "*.h")
 
 #-- EOF
