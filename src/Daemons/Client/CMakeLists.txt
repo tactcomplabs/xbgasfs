@@ -13,11 +13,15 @@ set(ClientSrcs
 )
 
 include_directories(.)
-include_directories(${BGASFS_INCLUDE_PATH})
 include_directories(/usr/local/include)
 include_directories(${GRPC_INCLUDE_PATH})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${XBGASFS_BUILD_DIR})
+include_directories(${XBGASFS_INCLUDE_PATH})
+include_directories(${XBGASFS_BINARY_INCLUDE_PATH})
 link_directories(/usr/local/lib)
 link_directories(${GRPC_LIB_PATH})
+
 
 add_executable(BGASFuseClient ${ClientSrcs})
 

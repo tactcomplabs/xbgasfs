@@ -21,7 +21,7 @@
 #include <grpc++/grpc++.h>
 
 // Protocol Headers
-#include "BGASRPC/bgasfs.grpc.pb.h"
+#include "BGASRPC/proto/bgasfs.grpc.pb.h"
 
 using grpc::Channel;
 using grpc::ClientContext;

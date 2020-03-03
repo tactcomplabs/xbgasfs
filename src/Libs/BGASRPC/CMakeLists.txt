@@ -9,23 +9,26 @@
 #
 
 set(BGASRPCSrcs
-  BGASRPC.hpp
-  bgasfs.grpc.pb.h
-  bgasfs.grpc.pb.cc
-  bgasfs.pb.h
-  bgasfs.pb.cc
+  BGASRPC.cpp
 )
 
 include_directories(.)
 include_directories(/usr/local/include)
 include_directories(${GRPC_INCLUDE_PATH})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${XBGASFS_BUILD_DIR})
+include_directories(${XBGASFS_INCLUDE_PATH})
+include_directories(${XBGASFS_BINARY_INCLUDE_PATH})
+
 link_directories(/usr/local/lib)
 link_directories(${GRPC_LIB_PATH})
 
-add_library(BGASRPC ${BGASRPCSrcs})
-target_link_libraries(BGASRPC protobuf grpc++ grpc++_reflection dl)
+add_library(BGASRPC ${BGASRPCSrcs} $<TARGET_OBJECTS:ProtoObjs>)
+target_link_libraries(BGASRPC ${PROTOBUF_LIBRARY} grpc++ grpc++_reflection dl)
 set_target_properties(BGASRPC PROPERTIES LINKER_LANGUAGE CXX)
 
 install(TARGETS BGASRPC ARCHIVE DESTINATION lib)
+
+add_subdirectory(proto)
 
 #-- EOF
