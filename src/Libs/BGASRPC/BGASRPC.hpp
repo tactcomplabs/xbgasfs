@@ -21,7 +21,7 @@
 #include <grpc++/grpc++.h>
 
 // Protocol Headers
-#include "bgasfs.grpc.pb.h"
+#include "BGASRPC/proto/bgasfs.grpc.pb.h"
 
 using grpc::Channel;
 using grpc::ClientAsyncResponseReader;
@@ -46,15 +46,12 @@ class BGASRPC{
 public:
 
   /// BGASRPC: Constructor
-  BGASRPC(std::shared_ptr<Channel> channel)
-    : stub_(BGASFSMsg::NewStub(channel)) {}
+  BGASRPC(std::shared_ptr<Channel> channel);
 
   /// BGASRPC: Destructor
-  ~BGASRPC() {}
+  ~BGASRPC();
 
-  bool ClientRqstFileAttr( const std::string& file ){
-    return true;
-  }
+  bool ClientRqstFileAttr( const std::string& file );
 
   bool ClientRqstUpdateFileAttr( const std::string& file,
                                  const uint32_t& v_st_dev,
@@ -67,32 +64,22 @@ public:
                                  const uint32_t& v_st_blksize,
                                  const uint32_t& v_st_atime,
                                  const uint32_t& v_st_mtime,
-                                 const uint32_t& v_st_ctime ){
-    return true;
-  }
+                                 const uint32_t& v_st_ctime );
 
   bool ClientRqstIO( const std::string& file,
-                     const bool& write ){
-    return true;
-  }
+                     const bool& write );
 
   bool ClientReadRqst( const std::string& file,
                        const uint64_t& offset,
-                       const uint64_t& len ){
-    return true;
-  }
+                       const uint64_t& len );
 
   bool ClientWriteRqst( const std::string& file,
                         const uint64_t& offset,
-                        const uint64_t& len ){
-    return true;
-  }
+                        const uint64_t& len );
 
   bool MDSDataPrefetch( const std::string& file,
                         const uint64_t& offset,
-                        const uint64_t& len ){
-    return true;
-  }
+                        const uint64_t& len );
 
 private:
   std::unique_ptr<BGASFSMsg::Stub> stub_; ///< Message handler stubs

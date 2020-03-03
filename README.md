@@ -6,6 +6,11 @@
 * C++14 Compiler (LLVM/Clang and GCC are tested)
 * CMake 3.4.3+
 * gRPC [https://grpc.io/]
+* libfuse (or compatible variants such as FUSE for macOS)
+
+## Supported libfuse implementations
+* libfuse : https://github.com/libfuse/libfuse
+* FUSE for macOS : https://osxfuse.github.io/
 
 ## Building
 

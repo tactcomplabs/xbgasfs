@@ -37,7 +37,7 @@
 #include "BGASRPC/BGASRPC.hpp"
 
 // Protocol Headers
-#include "BGASRPC/bgasfs.grpc.pb.h"
+#include "BGASRPC/proto/bgasfs.grpc.pb.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
