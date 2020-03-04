@@ -25,7 +25,7 @@ get_filename_component(hw_proto "bgasfs.proto" ABSOLUTE)
 get_filename_component(hw_proto_path "${hw_proto}" PATH)
 set(${hw_proto_path} ${CMAKE_CURRENT_BINARY_DIR})
 
-include_directories(${PROTO_HDRS})
+#include_directories(${PROTO_HDRS})
 include_directories(${XBGASFS_BUILD_DIR})
 
 set(hw_grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/bgasfs.grpc.pb.cc")
