@@ -8,7 +8,20 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-// Standard C++ Headers
+#define FUSE_USE_VERSION 31
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#define _GNU_SOURCE
+
+#ifdef linux
+#define _XOPEN_SOURCE 700
+#endif
+
+// Standard C/C++ Headers
+#include <fuse.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
@@ -16,13 +29,24 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <signal.h>
-
+#include <sys/time.h>
+#include <dirent.h>
 #include <string>
 #include <memory>
 #include <iostream>
 #include <vector>
 #include <list>
 #include <fstream>
+
+
+#ifdef __FreeBSD__
+#include <sys/socket.h>
+#include <sys/un.h>
+#endif
+
+#ifdef HAVE_SETXATTR
+#include <sys/xattr.h>
+#endif
 
 // Google logging mechanism
 #include <glog/logging.h>
@@ -57,6 +81,183 @@ using bgasfsmsg::BGASFSMsg;
 
 // Globals
 BGASFSConfig *Config;
+
+/// FuseClient: xmp_init
+static void *xmp_init(struct fuse_conn_info *conn,
+		      struct fuse_config *cfg) {
+  return NULL;
+}
+
+/// FuseClient: xmp_getattr
+static int xmp_getattr(const char *path, struct stat *stbuf,
+		       struct fuse_file_info *fi){
+  return 0;
+}
+
+/// FuseClient: xmp_access
+static int xmp_access(const char *path, int mask){
+  return 0;
+}
+
+/// FuseClient: xmp_readlink
+static int xmp_readlink(const char *path, char *buf, size_t size){
+  return 0;
+}
+
+/// FuseClient: xmp_readdir
+static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+		       off_t offset, struct fuse_file_info *fi,
+		       enum fuse_readdir_flags flags){
+  return 0;
+}
+
+/// FuseClient: xmp_mknod
+static int xmp_mknod(const char *path, mode_t mode, dev_t rdev){
+  return 0;
+}
+
+/// FuseClient: xmp_mkdir
+static int xmp_mkdir(const char *path, mode_t mode){
+  return 0;
+}
+
+/// FuseClient: xmp_unlink
+static int xmp_unlink(const char *path){
+  return 0;
+}
+
+/// FuseClient: xmp_rmdir
+static int xmp_rmdir(const char *path){
+  return 0;
+}
+
+/// FuseClient: xmp_symlink
+static int xmp_symlink(const char *from, const char *to){
+  return 0;
+}
+
+/// FuseClient: xmp_rename
+static int xmp_rename(const char *from, const char *to, unsigned int flags){
+  return 0;
+}
+
+/// FuseClient: xmp_link
+static int xmp_link(const char *from, const char *to){
+  return 0;
+}
+
+/// FuseClient: xmp_chmod
+static int xmp_chmod(const char *path, mode_t mode,
+		     struct fuse_file_info *fi){
+  return 0;
+}
+
+/// FuseClient: xmp_chown
+static int xmp_chown(const char *path, uid_t uid, gid_t gid,
+		     struct fuse_file_info *fi){
+  return 0;
+}
+
+/// FuseClient: xmp_truncate
+static int xmp_truncate(const char *path, off_t size,
+			struct fuse_file_info *fi){
+  return 0;
+}
+
+#ifdef HAVE_UTIMENSAT
+/// FuseClient: xmp_utimens
+static int xmp_utimens(const char *path, const struct timespec ts[2],
+		       struct fuse_file_info *fi){
+  return 0;
+}
+#endif // HAVE_UTIMENSAT
+
+/// FuseClient: xmp_create
+static int xmp_create(const char *path, mode_t mode,
+		      struct fuse_file_info *fi){
+  return 0;
+}
+
+/// FuseClient: xmp_open
+static int xmp_open(const char *path, struct fuse_file_info *fi){
+  return 0;
+}
+
+/// FuseClient: xmp_read
+static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
+		    struct fuse_file_info *fi){
+  return 0;
+}
+
+/// FuseClient: xmp_write
+static int xmp_write(const char *path, const char *buf, size_t size,
+		     off_t offset, struct fuse_file_info *fi){
+  return 0;
+}
+
+/// FuseClient: xmp_statfs
+static int xmp_statfs(const char *path, struct statvfs *stbuf){
+  return 0;
+}
+
+/// FuseClient: xmp_release
+static int xmp_release(const char *path, struct fuse_file_info *fi){
+  return 0;
+}
+
+/// FuseClient: xmp_fsync
+static int xmp_fsync(const char *path, int isdatasync,
+		     struct fuse_file_info *fi){
+  return 0;
+}
+
+#ifdef HAVE_POSIX_FALLOCATE
+/// FuseClient: xmp_fallocate
+static int xmp_fallocate(const char *path, int mode,
+			off_t offset, off_t length, struct fuse_file_info *fi){
+  return 0;
+}
+#endif // HAVE_POSIX_FALLOCATE
+
+#ifdef HAVE_SETXATTR
+/// FuseClient: xmp_setxattr
+static int xmp_setxattr(const char *path, const char *name, const char *value,
+			size_t size, int flags){
+  return 0;
+}
+
+/// FuseClient: xmp_getxattr
+static int xmp_getxattr(const char *path, const char *name, char *value,
+			size_t size){
+  return 0;
+}
+
+/// FuseClient: xmp_listxattr
+static int xmp_listxattr(const char *path, char *list, size_t size){
+  return 0;
+}
+
+/// FuseClient: xmp_removexattr
+static int xmp_removexattr(const char *path, const char *name){
+	return 0;
+}
+#endif // HAVE_SETXATTR
+
+#ifdef HAVE_COPY_FILE_RANGE
+/// FuseClient: xmp_copy_file_range
+static ssize_t xmp_copy_file_range(const char *path_in,
+				   struct fuse_file_info *fi_in,
+				   off_t offset_in, const char *path_out,
+				   struct fuse_file_info *fi_out,
+				   off_t offset_out, size_t len, int flags){
+  return 0;
+}
+#endif // HAVE_COPY_FILE_RANGE
+
+/// FuseCLient: xmp_lseek
+static off_t xmp_lseek(const char *path, off_t off, int whence,
+                       struct fuse_file_info *fi){
+}
 
 /// FuseClient: Signal Handler
 void handler(int signum){
@@ -116,6 +317,47 @@ void FuseClientDaemon(std::string ServerConfig){
 
   // server is setup, start the file system
 }
+
+static const struct fuse_operations xmp_oper = {
+	.init           = xmp_init,
+	.getattr	= xmp_getattr,
+	.access		= xmp_access,
+	.readlink	= xmp_readlink,
+	.readdir	= xmp_readdir,
+	.mknod		= xmp_mknod,
+	.mkdir		= xmp_mkdir,
+	.symlink	= xmp_symlink,
+	.unlink		= xmp_unlink,
+	.rmdir		= xmp_rmdir,
+	.rename		= xmp_rename,
+	.link		= xmp_link,
+	.chmod		= xmp_chmod,
+	.chown		= xmp_chown,
+	.truncate	= xmp_truncate,
+#ifdef HAVE_UTIMENSAT
+	.utimens	= xmp_utimens,
+#endif
+	.open		= xmp_open,
+	.create 	= xmp_create,
+	.read		= xmp_read,
+	.write		= xmp_write,
+	.statfs		= xmp_statfs,
+	.release	= xmp_release,
+	.fsync		= xmp_fsync,
+#ifdef HAVE_POSIX_FALLOCATE
+	.fallocate	= xmp_fallocate,
+#endif
+#ifdef HAVE_SETXATTR
+	.setxattr	= xmp_setxattr,
+	.getxattr	= xmp_getxattr,
+	.listxattr	= xmp_listxattr,
+	.removexattr	= xmp_removexattr,
+#endif
+#ifdef HAVE_COPY_FILE_RANGE
+	.copy_file_range = xmp_copy_file_range,
+#endif
+	.lseek		= xmp_lseek,
+};
 
 /// FuseClient: Main
 int main( int argc, char **argv ){
