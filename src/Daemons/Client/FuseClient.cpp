@@ -8,7 +8,7 @@
 // See LICENSE in the top level directory for licensing details
 //
 
-#define FUSE_USE_VERSION 31
+//#define FUSE_USE_VERSION 31
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -83,14 +83,12 @@ using bgasfsmsg::BGASFSMsg;
 BGASFSConfig *Config;
 
 /// FuseClient: xmp_init
-static void *xmp_init(struct fuse_conn_info *conn,
-		      struct fuse_config *cfg) {
+static void *xmp_init(struct fuse_conn_info *conn){
   return NULL;
 }
 
 /// FuseClient: xmp_getattr
-static int xmp_getattr(const char *path, struct stat *stbuf,
-		       struct fuse_file_info *fi){
+static int xmp_getattr(const char *path, struct stat *stbuf){
   return 0;
 }
 
@@ -106,8 +104,8 @@ static int xmp_readlink(const char *path, char *buf, size_t size){
 
 /// FuseClient: xmp_readdir
 static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-		       off_t offset, struct fuse_file_info *fi,
-		       enum fuse_readdir_flags flags){
+		       off_t offset, struct fuse_file_info *fi){
+
   return 0;
 }
 
@@ -137,7 +135,7 @@ static int xmp_symlink(const char *from, const char *to){
 }
 
 /// FuseClient: xmp_rename
-static int xmp_rename(const char *from, const char *to, unsigned int flags){
+static int xmp_rename(const char *from, const char *to){
   return 0;
 }
 
@@ -147,20 +145,17 @@ static int xmp_link(const char *from, const char *to){
 }
 
 /// FuseClient: xmp_chmod
-static int xmp_chmod(const char *path, mode_t mode,
-		     struct fuse_file_info *fi){
+static int xmp_chmod(const char *path, mode_t mode){
   return 0;
 }
 
 /// FuseClient: xmp_chown
-static int xmp_chown(const char *path, uid_t uid, gid_t gid,
-		     struct fuse_file_info *fi){
+static int xmp_chown(const char *path, uid_t uid, gid_t gid){
   return 0;
 }
 
 /// FuseClient: xmp_truncate
-static int xmp_truncate(const char *path, off_t size,
-			struct fuse_file_info *fi){
+static int xmp_truncate(const char *path, off_t size){
   return 0;
 }
 
@@ -253,11 +248,6 @@ static ssize_t xmp_copy_file_range(const char *path_in,
   return 0;
 }
 #endif // HAVE_COPY_FILE_RANGE
-
-/// FuseCLient: xmp_lseek
-static off_t xmp_lseek(const char *path, off_t off, int whence,
-                       struct fuse_file_info *fi){
-}
 
 /// FuseClient: Signal Handler
 void handler(int signum){
@@ -356,7 +346,6 @@ static const struct fuse_operations xmp_oper = {
 #ifdef HAVE_COPY_FILE_RANGE
 	.copy_file_range = xmp_copy_file_range,
 #endif
-	.lseek		= xmp_lseek,
 };
 
 /// FuseClient: Main
