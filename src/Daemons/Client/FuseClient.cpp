@@ -82,6 +82,17 @@ using bgasfsmsg::BGASFSMsg;
 // Globals
 BGASFSConfig *Config;
 
+struct xmp{
+  int case_insensitive;
+};
+
+static struct xmp xmp;
+
+static const struct fuse_opt xmp_opts[] = {
+  {"case_insensitive", offsetof(struct xmp, case_insensitive), 1},
+  FUSE_OPT_END
+};
+
 /// FuseClient: xmp_init
 static void *xmp_init(struct fuse_conn_info *conn){
   return NULL;
@@ -255,8 +266,50 @@ void handler(int signum){
   exit(EXIT_SUCCESS);
 }
 
+static const struct fuse_operations xmp_oper = {
+	.init           = xmp_init,
+	.getattr	= xmp_getattr,
+	.access		= xmp_access,
+	.readlink	= xmp_readlink,
+	.readdir	= xmp_readdir,
+	.mknod		= xmp_mknod,
+	.mkdir		= xmp_mkdir,
+	.symlink	= xmp_symlink,
+	.unlink		= xmp_unlink,
+	.rmdir		= xmp_rmdir,
+	.rename		= xmp_rename,
+	.link		= xmp_link,
+	.chmod		= xmp_chmod,
+	.chown		= xmp_chown,
+	.truncate	= xmp_truncate,
+#ifdef HAVE_UTIMENSAT
+	.utimens	= xmp_utimens,
+#endif
+	.open		= xmp_open,
+	.create 	= xmp_create,
+	.read		= xmp_read,
+	.write		= xmp_write,
+	.statfs		= xmp_statfs,
+	.release	= xmp_release,
+	.fsync		= xmp_fsync,
+#ifdef HAVE_POSIX_FALLOCATE
+	.fallocate	= xmp_fallocate,
+#endif
+#ifdef HAVE_SETXATTR
+	.setxattr	= xmp_setxattr,
+	.getxattr	= xmp_getxattr,
+	.listxattr	= xmp_listxattr,
+	.removexattr	= xmp_removexattr,
+#endif
+#ifdef HAVE_COPY_FILE_RANGE
+	.copy_file_range = xmp_copy_file_range,
+#endif
+};
+
+
 /// FuseClient: Daemon
-void FuseClientDaemon(std::string ServerConfig){
+void FuseClientDaemon(std::string ServerConfig,
+                      int argc, char **argv){
 
   // read the server config
   Config = new BGASFSConfig( ServerConfig );
@@ -306,47 +359,22 @@ void FuseClientDaemon(std::string ServerConfig){
   signal(SIGHUP, SIG_IGN);
 
   // server is setup, start the file system
-}
+  int res = 0;
+  struct fuse_args args = FUSE_ARGS_INIT(argc,argv);
 
-static const struct fuse_operations xmp_oper = {
-	.init           = xmp_init,
-	.getattr	= xmp_getattr,
-	.access		= xmp_access,
-	.readlink	= xmp_readlink,
-	.readdir	= xmp_readdir,
-	.mknod		= xmp_mknod,
-	.mkdir		= xmp_mkdir,
-	.symlink	= xmp_symlink,
-	.unlink		= xmp_unlink,
-	.rmdir		= xmp_rmdir,
-	.rename		= xmp_rename,
-	.link		= xmp_link,
-	.chmod		= xmp_chmod,
-	.chown		= xmp_chown,
-	.truncate	= xmp_truncate,
-#ifdef HAVE_UTIMENSAT
-	.utimens	= xmp_utimens,
-#endif
-	.open		= xmp_open,
-	.create 	= xmp_create,
-	.read		= xmp_read,
-	.write		= xmp_write,
-	.statfs		= xmp_statfs,
-	.release	= xmp_release,
-	.fsync		= xmp_fsync,
-#ifdef HAVE_POSIX_FALLOCATE
-	.fallocate	= xmp_fallocate,
-#endif
-#ifdef HAVE_SETXATTR
-	.setxattr	= xmp_setxattr,
-	.getxattr	= xmp_getxattr,
-	.listxattr	= xmp_listxattr,
-	.removexattr	= xmp_removexattr,
-#endif
-#ifdef HAVE_COPY_FILE_RANGE
-	.copy_file_range = xmp_copy_file_range,
-#endif
-};
+  xmp.case_insensitive = 0;
+  if( fuse_opt_parse(&args, &xmp, xmp_opts, NULL) == -1){
+    LOG(FATAL) << "Error parsing libfuse options";
+    exit(EXIT_FAILURE);
+  }
+
+  umask(0);
+  res = fuse_main(args.argc, args.argv, &xmp_oper, NULL );
+
+  fuse_opt_free_args(&args);
+
+  LOG(INFO) << "Exiting file system with exit code=" << res;
+}
 
 /// FuseClient: Main
 int main( int argc, char **argv ){
@@ -367,7 +395,7 @@ int main( int argc, char **argv ){
     ServerConfig = std::string(argv[1]);
   }
 
-  FuseClientDaemon(ServerConfig);
+  FuseClientDaemon(ServerConfig,argc,argv);
 
   return 0;
 }
