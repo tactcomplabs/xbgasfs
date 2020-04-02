@@ -95,21 +95,64 @@ static const struct fuse_opt xmp_opts[] = {
 
 /// FuseClient: xmp_init
 static void *xmp_init(struct fuse_conn_info *conn){
+  if( !Config ){
+    delete Config;
+    LOG(FATAL) << "BGASFS configuration is null";
+    exit(EXIT_FAILURE);
+  }
+
+  FUSE_ENABLE_SETVOLNAME(conn);
+  FUSE_ENABLE_XTIMES(conn);
+
+#ifdef FUSE_ENABLE_CASE_INSENSITIVE
+  if( xmp.case_insensitive ){
+    FUSE_ENABLE_CASE_INSENSITIVE(conn);
+  }
+#endif
+
   return NULL;
 }
 
 /// FuseClient: xmp_getattr
 static int xmp_getattr(const char *path, struct stat *stbuf){
+
+  //
+  // Similar in struture to the 'stat()' function.
+  // Must fill in all the fields of *stbuf except
+  // the st_dev and st_blksize fields.
+  //
+  // This will require the ClientRqstFileAttr protocol
+  //
+
   return 0;
 }
 
 /// FuseClient: xmp_access
 static int xmp_access(const char *path, int mask){
+
+  //
+  // Called for the 'access()' system call.
+  // If the 'default_permissions' mount option is given, this is
+  // not called.
+  //
+  // This will require the ClientRqstFileAttr protocol as it checks
+  // the accessibility of the file
+  //
+
   return 0;
 }
 
 /// FuseClient: xmp_readlink
 static int xmp_readlink(const char *path, char *buf, size_t size){
+
+  //
+  // Buffer should be a null terminated string, but check it anyway
+  // The return value should be 0 on success
+  //
+  // This is similar to 'getattr()', but it follows the symlink
+  // instead of the link itself.  This will require the ClientRqstFileAttr
+  //
+
   return 0;
 }
 
@@ -117,16 +160,42 @@ static int xmp_readlink(const char *path, char *buf, size_t size){
 static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		       off_t offset, struct fuse_file_info *fi){
 
+  //
+  // This may have multiple implementations, but the best likely implementation
+  // is that readdir ignores the offset parameter and passes zero to the filler
+  // function's offset.  The filler function will not return '1' (unless error
+  // occurs) so tht whole directory is read in a single readdir operation.
+  //
+  // ClientRqstIO + some notional internal cache
+  //
+
   return 0;
 }
 
 /// FuseClient: xmp_mknod
 static int xmp_mknod(const char *path, mode_t mode, dev_t rdev){
+
+  //
+  // This is called for all non-directory, non-symlink nodes.
+  // If the filesystme defines a create() method, then it will be called for
+  // regular files instead.
+  //
+  // We need a new protocol handler for this... unless we cache the request
+  // locally before writing to the new file
+  //
+
   return 0;
 }
 
 /// FuseClient: xmp_mkdir
 static int xmp_mkdir(const char *path, mode_t mode){
+
+  //
+  // Creates a directory on the target path
+  //
+  // This likely needs a new protocol handler
+  //
+
   return 0;
 }
 
@@ -307,17 +376,29 @@ static const struct fuse_operations xmp_oper = {
 };
 
 
+/// FuseClient: ValidateConfig
+bool ValidateConfig(){
+  if( Config->GetMDSServers().size() == 0 ){
+    LOG(FATAL) << "BGASFS has no configured metadata servers";
+    return false;
+  }
+
+  if( Config->GetDataServers().size() == 0 ){
+    LOG(FATAL) << "BGASFS has no configured data servers";
+    return false;
+  }
+
+  if( Config->GetDeviceType() != BGASClient ){
+    LOG(FATAL) << "Invalid device type.  Must be a BGASFS client";
+    return false;
+  }
+
+  return true;
+}
+
 /// FuseClient: Daemon
 void FuseClientDaemon(std::string ServerConfig,
                       int argc, char **argv){
-
-  // read the server config
-  Config = new BGASFSConfig( ServerConfig );
-  if( !Config->IsInit() ){
-    delete Config;
-    LOG(FATAL) << "Error reading configuration file: " << ServerConfig;
-    exit(EXIT_FAILURE);
-  }
 
   // create the child process
   pid_t pid = fork();
@@ -332,6 +413,20 @@ void FuseClientDaemon(std::string ServerConfig,
   if( pid > 0 ){
     delete Config;
     exit(EXIT_SUCCESS);
+  }
+
+  // read the server config
+  Config = new BGASFSConfig( ServerConfig );
+  if( !Config->IsInit() ){
+    delete Config;
+    LOG(FATAL) << "Error reading configuration file: " << ServerConfig;
+    exit(EXIT_FAILURE);
+  }
+
+  if( !ValidateConfig() ){
+    delete Config;
+    LOG(FATAL) << "Configuration is invalid: " << ServerConfig;
+    exit(EXIT_FAILURE);
   }
 
   // set the file permission for the files created by the child
@@ -365,14 +460,15 @@ void FuseClientDaemon(std::string ServerConfig,
   xmp.case_insensitive = 0;
   if( fuse_opt_parse(&args, &xmp, xmp_opts, NULL) == -1){
     LOG(FATAL) << "Error parsing libfuse options";
+    delete(Config);
     exit(EXIT_FAILURE);
   }
 
-  umask(0);
   res = fuse_main(args.argc, args.argv, &xmp_oper, NULL );
 
   fuse_opt_free_args(&args);
 
+  delete(Config);
   LOG(INFO) << "Exiting file system with exit code=" << res;
 }
 
