@@ -201,41 +201,92 @@ static int xmp_mkdir(const char *path, mode_t mode){
 
 /// FuseClient: xmp_unlink
 static int xmp_unlink(const char *path){
+  //
+  // Removes a file
+  //
+  // This definitely needs a new protocol handler
+  //
+
   return 0;
 }
 
 /// FuseClient: xmp_rmdir
 static int xmp_rmdir(const char *path){
+  //
+  // Removes a directory
+  //
+  // This definitely needs a new protocol handler
+  //
+  // See xmp_unlink, we may be able to use a single protocol
+  // and allow the metadata server determine whether the target
+  // is a directory or a file
+  //
   return 0;
 }
 
 /// FuseClient: xmp_symlink
 static int xmp_symlink(const char *from, const char *to){
+  //
+  // Creates a symbolic link
+  //
+  // This will require a new protocol handler as the protocol
+  // must contain the *from and *to names in the request
+  //
   return 0;
 }
 
 /// FuseClient: xmp_rename
 static int xmp_rename(const char *from, const char *to){
+  //
+  // Renames a file or directory
+  //
+  // This will require a new protocol handler, but may be able
+  // to be merged with another protocol.  Need more research here.
+  //
   return 0;
 }
 
 /// FuseClient: xmp_link
 static int xmp_link(const char *from, const char *to){
+  //
+  // Create a hard link to a file
+  //
+  // If we get smart, we can probably use the symlink protocol
+  // handler with an additional argument to do this.  Lets
+  // investigate the performance
+  //
   return 0;
 }
 
 /// FuseClient: xmp_chmod
 static int xmp_chmod(const char *path, mode_t mode){
+  //
+  // Changes the file/directory mode
+  //
+  // This should use the 'ClientRqstUpdateFileAttr' protocol
+  //
   return 0;
 }
 
 /// FuseClient: xmp_chown
 static int xmp_chown(const char *path, uid_t uid, gid_t gid){
+  //
+  // Changes the file/directory ownership
+  //
+  // This should use the 'ClientRqstUpdateFileAttr' protocol
+  //
   return 0;
 }
 
 /// FuseClient: xmp_truncate
 static int xmp_truncate(const char *path, off_t size){
+  //
+  // Change the size of a file.
+  //
+  // We may be able to use the `ClientRqstUpdateFileAttr` and update
+  // the file size.  We may need to add an additional flag to trigger the
+  // truncate operation rather than updating the remainder of the values
+  //
   return 0;
 }
 
@@ -243,6 +294,16 @@ static int xmp_truncate(const char *path, off_t size){
 /// FuseClient: xmp_utimens
 static int xmp_utimens(const char *path, const struct timespec ts[2],
 		       struct fuse_file_info *fi){
+  //
+  // Change the access and modification time for the target file
+  //
+  // We may be able to reuse the `ClientRqstUpdateFileAttr` protocol.
+  // However, the time set is relative to the client system triggering
+  // the call... not the metadata server or the data server.  Other
+  // file systems have similar issues with distributed time keeping.
+  // We may need to implement some notional Lamport clock in order to
+  // help soften the time shift between systems.
+  //
   return 0;
 }
 #endif // HAVE_UTIMENSAT
@@ -250,39 +311,83 @@ static int xmp_utimens(const char *path, const struct timespec ts[2],
 /// FuseClient: xmp_create
 static int xmp_create(const char *path, mode_t mode,
 		      struct fuse_file_info *fi){
+  //
+  // create and open the file
+  //
+  // We will likely need to modify the `ClientWriteRqst` protocol
+  // in order to correctly trigger this with permissions attached
+  //
   return 0;
 }
 
 /// FuseClient: xmp_open
 static int xmp_open(const char *path, struct fuse_file_info *fi){
+  //
+  // opens a file
+  // Use the following flags:
+  // - Creation (O_CREAT, O_EXCL, O_NOCTTY)
+  // - Access modes (O_RDONLY, O_WRONLY, O_RDWR, O_EXEC, O_SEARCH)
+  //
+  // This will likely be coupled to `ClientRqstIO`
+  //
   return 0;
 }
 
 /// FuseClient: xmp_read
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 		    struct fuse_file_info *fi){
+  //
+  // Read the target number of bytes from the file
+  //
+  // Will require `ClientRqstIO` + `ClientReadRqst`
+  // These may be combined in the future
+  //
   return 0;
 }
 
 /// FuseClient: xmp_write
 static int xmp_write(const char *path, const char *buf, size_t size,
 		     off_t offset, struct fuse_file_info *fi){
+  //
+  // Write the target number of bytes to the file
+  //
+  // Will require `ClientRqstIO` + `ClientWriteRqst`
+  // These may be combined in the future
+  //
   return 0;
 }
 
 /// FuseClient: xmp_statfs
 static int xmp_statfs(const char *path, struct statvfs *stbuf){
+  //
+  // Retrieve the file system statistics
+  //
+  // This will definitely require a new protocol
+  // Question: How fast does this operation need to be?
+  //
   return 0;
 }
 
 /// FuseClient: xmp_release
 static int xmp_release(const char *path, struct fuse_file_info *fi){
+  //
+  // Called as the completed to 'open'
+  // Signals that there are no open/used references for this file descriptor
+  //
+  // This will require a new protocol handler
+  //
   return 0;
 }
 
 /// FuseClient: xmp_fsync
 static int xmp_fsync(const char *path, int isdatasync,
 		     struct fuse_file_info *fi){
+  //
+  // Syncs the file system
+  //
+  // If the datasync parameter is non-zero, then only the user data
+  // is synced, not the metadata (data is written back to data servers)
+  //
   return 0;
 }
 
@@ -290,6 +395,12 @@ static int xmp_fsync(const char *path, int isdatasync,
 /// FuseClient: xmp_fallocate
 static int xmp_fallocate(const char *path, int mode,
 			off_t offset, off_t length, struct fuse_file_info *fi){
+  //
+  // Allocates space for the open file
+  //
+  // We may be able to adapt one of the new protocol handlers for opening
+  // a file for this purpose.  EG, Open and allocate space
+  //
   return 0;
 }
 #endif // HAVE_POSIX_FALLOCATE
@@ -298,23 +409,43 @@ static int xmp_fallocate(const char *path, int mode,
 /// FuseClient: xmp_setxattr
 static int xmp_setxattr(const char *path, const char *name, const char *value,
 			size_t size, int flags){
+  //
+  // Set the extended attributes
+  //
+  // A new protocol?  Not sure here... Need more research into what the
+  // extended values are
+  //
   return 0;
 }
 
 /// FuseClient: xmp_getxattr
 static int xmp_getxattr(const char *path, const char *name, char *value,
 			size_t size){
+  //
+  // Retrieve the extended attribute
+  //
+  // This will likely require a new protocol
+  //
   return 0;
 }
 
 /// FuseClient: xmp_listxattr
 static int xmp_listxattr(const char *path, char *list, size_t size){
+  //
+  // List the extended attributes
+  //
+  // This will likely require a new protocol
+  //
   return 0;
 }
 
 /// FuseClient: xmp_removexattr
 static int xmp_removexattr(const char *path, const char *name){
-	return 0;
+  //
+  // Remove an extended attribute
+  //
+  // This will likely require a new protocol
+  return 0;
 }
 #endif // HAVE_SETXATTR
 
@@ -325,6 +456,12 @@ static ssize_t xmp_copy_file_range(const char *path_in,
 				   off_t offset_in, const char *path_out,
 				   struct fuse_file_info *fi_out,
 				   off_t offset_out, size_t len, int flags){
+  //
+  // copy a range of data from one file to another
+  //
+  // this will definitely require a new protocol
+  // however, implementing this as a backend activity will likely
+  // improve performance for copy operations significantly
   return 0;
 }
 #endif // HAVE_COPY_FILE_RANGE
