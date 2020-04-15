@@ -1,5 +1,6 @@
 //
 // _FuseClient_cpp_
+//
 // Copyright (C) 2017-2020 Tactical Computing Laboratories, LLC
 // All Rights Reserved
 //
@@ -193,7 +194,7 @@ static int xmp_mkdir(const char *path, mode_t mode){
   //
   // Creates a directory on the target path
   //
-  // This likely needs a new protocol handler
+  // MkdirRqstMsg protocol
   //
 
   return 0;
@@ -204,7 +205,7 @@ static int xmp_unlink(const char *path){
   //
   // Removes a file
   //
-  // This definitely needs a new protocol handler
+  // FileRmRqstMsg protocol
   //
 
   return 0;
@@ -217,9 +218,7 @@ static int xmp_rmdir(const char *path){
   //
   // This definitely needs a new protocol handler
   //
-  // See xmp_unlink, we may be able to use a single protocol
-  // and allow the metadata server determine whether the target
-  // is a directory or a file
+  // FileRmRqstmsg protocol
   //
   return 0;
 }
@@ -229,8 +228,7 @@ static int xmp_symlink(const char *from, const char *to){
   //
   // Creates a symbolic link
   //
-  // This will require a new protocol handler as the protocol
-  // must contain the *from and *to names in the request
+  // FileLinkRqstMsg protocol
   //
   return 0;
 }
@@ -240,8 +238,7 @@ static int xmp_rename(const char *from, const char *to){
   //
   // Renames a file or directory
   //
-  // This will require a new protocol handler, but may be able
-  // to be merged with another protocol.  Need more research here.
+  // FileRenameRqstMsg protocol
   //
   return 0;
 }
@@ -251,9 +248,7 @@ static int xmp_link(const char *from, const char *to){
   //
   // Create a hard link to a file
   //
-  // If we get smart, we can probably use the symlink protocol
-  // handler with an additional argument to do this.  Lets
-  // investigate the performance
+  // FileRenameRqstMsg protocol
   //
   return 0;
 }
@@ -314,8 +309,7 @@ static int xmp_create(const char *path, mode_t mode,
   //
   // create and open the file
   //
-  // We will likely need to modify the `ClientWriteRqst` protocol
-  // in order to correctly trigger this with permissions attached
+  // FileCreateRqstMsg
   //
   return 0;
 }
@@ -362,8 +356,7 @@ static int xmp_statfs(const char *path, struct statvfs *stbuf){
   //
   // Retrieve the file system statistics
   //
-  // This will definitely require a new protocol
-  // Question: How fast does this operation need to be?
+  // FSStatRqstMsg protocol
   //
   return 0;
 }
@@ -374,7 +367,7 @@ static int xmp_release(const char *path, struct fuse_file_info *fi){
   // Called as the completed to 'open'
   // Signals that there are no open/used references for this file descriptor
   //
-  // This will require a new protocol handler
+  // FileReleaseRqst protocol
   //
   return 0;
 }
@@ -398,8 +391,7 @@ static int xmp_fallocate(const char *path, int mode,
   //
   // Allocates space for the open file
   //
-  // We may be able to adapt one of the new protocol handlers for opening
-  // a file for this purpose.  EG, Open and allocate space
+  // FileIORqstMsg
   //
   return 0;
 }
