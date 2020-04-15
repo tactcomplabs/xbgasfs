@@ -25,8 +25,29 @@ service BGASFSMsg {
   // Client ==> MDS: Update a file attribute
   rpc ClientRqstUpdateFileAttr(UpdateFileAttrRqstMsg) returns (UpdateFileAttrRspMsg) {}
 
+  // Client ==> MDS: Make a directory
+  rpc ClientMkdir(MkdirRqstMsg) returns (MkdirRspMsg) {}
+
+  // Client ==> MDS: Create a file
+  rpc ClientFileCreate(FileCreateRqstMsg) returns (FileCreateRspMsg) {}
+
   // Client ==> MDS: Initiate an I/O request
   rpc ClientRqstIO(FileIORqstMsg) returns (FileIORspMsg) {}
+
+  // Client ==> MDS: Remove a file
+  rpc ClientRmFile(FileRmRqstMsg) returns (FileRmRspMsg) {}
+
+  // Client ==> MDS: Rename a file
+  rpc ClientRenameFile(FileRenameRqstMsg) returns (FileRenameRspMsg) {}
+
+  // Client ==> MDS: Link a file
+  rpc ClientLinkFile(FileLinkRqstMsg) returns (FileLinkRspMsg) {}
+
+  // Client ==> MDS: File System stat
+  rpc ClientFSStat(FSStatRqstMsg) returns (FSStatRspMsg) {}
+
+  // Client ==> MDS: Release a file
+  rpc ClientReleaseFile(FileReleaseRqst) returns (FileReleaseRsp) {}
 
   // Client ==> DataServer: Initiate a read request
   rpc ClientReadRqst(ClientIOReadRqstMsg) returns (ClientIOReadRspMsg) {}
