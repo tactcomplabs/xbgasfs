@@ -51,6 +51,26 @@ endif()
 message(STATUS "GRPC_LIB_PATH set to ${GRPC_LIB_PATH}")
 message(STATUS "GRPC_INCLUDE_PATH set to ${GRPC_INCLUDE_PATH}")
 
+# Set the libFuse paths
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+  # -- OSX Darwin
+  if(NOT FUSE_INSTALL_PATH)
+    set(FUSE_INCLUDE_PATH "/usr/local/include/osxfuse/fuse")
+    set(FUSE_LIB_PATH "/usr/local/lib")
+  else()
+    set(FUSE_INCLUDE_PATH "${FUSE_INSTALL_PATH}/osxfuse/fuse")
+    set(FUSE_LIB_PATH "${FUSE_INSTALL_PATH}/lib")
+  endif()
+  set(FUSE_CFLAGS "-DFUSE_USE_VERSION=26 -D_FILE_OFFSET_BITS=64 -D_DARWIN_USE_64_BIT_INODE")
+  set(FUSE_LIBS "osxfuse")
+else()
+  # -- Linux/BSD
+endif()
+
+message(STATUS "FUSE_INCLUDE_PATH set to ${FUSE_INCLUDE_PATH}")
+message(STATUS "FUSE_CFLAGS set to ${FUSE_CFLAGS}")
+message(STATUS "FUSE_LIBS set to ${FUSE_LIBS}")
+
 if(NOT XBGASFS_BUILD_DIR)
   set(XBGASFS_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}")
   message(STATUS "XBGASFS_BUILD_DIR set to ${XBGASFS_BUILD_DIR}")
