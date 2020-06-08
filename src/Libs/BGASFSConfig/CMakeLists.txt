@@ -21,5 +21,9 @@ add_library(BGASFSConfig ${BGASFSConfigSrcs})
 set_target_properties(BGASFSConfig PROPERTIES LINKER_LANGUAGE CXX)
 
 install(TARGETS BGASFSConfig ARCHIVE DESTINATION lib)
+install(DIRECTORY "."
+        DESTINATION "include/BGASFSConfig"
+        FILES_MATCHING
+        PATTERN "*.hpp")
 
 #-- EOF

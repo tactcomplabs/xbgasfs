@@ -25,8 +25,29 @@ service BGASFSMsg {
   // Client ==> MDS: Update a file attribute
   rpc ClientRqstUpdateFileAttr(UpdateFileAttrRqstMsg) returns (UpdateFileAttrRspMsg) {}
 
+  // Client ==> MDS: Make a directory
+  rpc ClientMkdir(MkdirRqstMsg) returns (MkdirRspMsg) {}
+
+  // Client ==> MDS: Create a file
+  rpc ClientFileCreate(FileCreateRqstMsg) returns (FileCreateRspMsg) {}
+
   // Client ==> MDS: Initiate an I/O request
   rpc ClientRqstIO(FileIORqstMsg) returns (FileIORspMsg) {}
+
+  // Client ==> MDS: Remove a file
+  rpc ClientRmFile(FileRmRqstMsg) returns (FileRmRspMsg) {}
+
+  // Client ==> MDS: Rename a file
+  rpc ClientRenameFile(FileRenameRqstMsg) returns (FileRenameRspMsg) {}
+
+  // Client ==> MDS: Link a file
+  rpc ClientLinkFile(FileLinkRqstMsg) returns (FileLinkRspMsg) {}
+
+  // Client ==> MDS: File System stat
+  rpc ClientFSStat(FSStatRqstMsg) returns (FSStatRspMsg) {}
+
+  // Client ==> MDS: Release a file
+  rpc ClientReleaseFile(FileReleaseRqst) returns (FileReleaseRsp) {}
 
   // Client ==> DataServer: Initiate a read request
   rpc ClientReadRqst(ClientIOReadRqstMsg) returns (ClientIOReadRspMsg) {}
@@ -38,53 +59,99 @@ service BGASFSMsg {
   rpc MDSDataPrefetch(DataPrefetchRqstMsg) returns (DataPrefetchRspMsg) {}
 }
 
+// ------------ GENERIC BASE MESSAGE TYPES
+message FileAttr {
+  uint32 v_st_dev     = 1;    // FileAttr: ID of device containing the file
+  uint32 v_st_mode    = 2;    // FileAttr: File mode
+  uint32 v_st_nlink   = 3;    // FileAttr: Number of hard links
+  uint32 v_st_uid     = 4;    // FileAttr: User ID of the owner
+  uint32 v_st_gid     = 5;    // FileAttr: Group ID of the owner
+  uint32 v_st_rdev    = 6;    // FileAttr: Device ID (IFF special file)
+  uint64 v_st_size    = 7;    // FileAttr: Total size in bytes
+  uint32 v_st_blksize = 8;    // FileAttr: Number of 512B blocks allocated
+  uint64 v_st_atime   = 9;    // FileAttr: Time of last access
+  uint64 v_st_mtime   = 10;   // FileAttr: Time of last modification
+  uint64 v_st_ctime   = 11;   // FileAttr: Time of last status change
+}
+
+message FileSysAttr {
+  uint64 f_bsize      = 1;    // FileSysAttr: Filesystem block size
+  uint64 f_frsize     = 2;    // FileSysAttr: Fragment size
+  uint64 f_blocks     = 3;    // FileSysAttr: Size of fs in f_frsize units
+  uint64 f_bfree      = 4;    // FileSysAttr: Number of free blocks
+  uint64 f_bavail     = 5;    // FileSysAttr: Number of free blocks for unpriv users
+  uint64 f_files      = 6;    // FileSysAttr: Number of inodes
+  uint64 f_ffree      = 7;    // FileSysAttr: Number of free inodes
+  uint64 f_favail     = 8;    // FileSysAttr: Number of free inodes for unpriv users
+  uint64 f_fsid       = 9;    // FileSysAttr: Filesystem ID
+  uint64 f_flag       = 10;   // FileSysAttr: Mount flags
+  uint64 f_namemax    = 11;   // FileSysAttr: Maximum filename length
+}
+
+message FileBuffer{
+  bytes buf          = 1;      // FileBuffer: internal file buffer
+}
+
+message MsgAttr {
+  enum MsgAttrEnum {
+    FILE      = 0;  // MsgAttrEnum: File
+    DIR       = 1;  // MsgAttrEnum: Directory
+    SYMLINK   = 2;  // MsgAttrEnum: Symlink
+    HARDLINK  = 3;  // MsgAttrEnum: Hardlink
+  }
+}
+
 // ------------ CLIENT ==> MDS MESSAGES
 // -- File Attribute Request
 message FileAttrRqstMsg {
   string file       = 1;      // FileAttrRqstMsg: Path to the file requested
+  MsgAttr type      = 2;      // FileAttrRqstMsg: Type of file requested
 }
 
 // -- File Attribute Response
 message FileAttrRspMsg {
-  string file       = 1;      // FileAttrRspMsg: Path to the file requested
-  uint32 v_st_dev     = 2;    // FileAttrRspMsg: ID of device containing the file
-  uint32 v_st_mode    = 3;    // FileAttrRspMsg: File mode
-  uint32 v_st_nlink   = 4;    // FileAttrRspMsg: Number of hard links
-  uint32 v_st_uid     = 5;    // FileAttrRspMsg: User ID of the owner
-  uint32 v_st_gid     = 6;    // FileAttrRspMsg: Group ID of the owner
-  uint32 v_st_rdev    = 7;    // FileAttrRspMsg: Device ID (IFF special file)
-  uint64 v_st_size    = 8;    // FileAttrRspMsg: Total size in bytes
-  uint32 v_st_blksize = 9;    // FileAttrRspMsg: Number of 512B blocks allocated
-  uint64 v_st_atime   = 10;   // FileAttrRspMsg: Time of last access
-  uint64 v_st_mtime   = 11;   // FileAttrRspMsg: Time of last modification
-  uint64 v_st_ctime   = 12;   // FileAttrRspMsg: Time of last status change
+  string file      = 1;      // FileAttrRspMsg: Path to the file requested
+  FileAttr attr    = 2;      // FileAttrRspMsg: File attribute message block
 }
 
 // -- Update File Attribute Request
 message UpdateFileAttrRqstMsg {
-  string file       = 1;      // UpdateFileAttrRqstMsg: Path to the file requested
-  uint32 v_st_dev     = 2;    // UpdateFileAttrRqstMsg: ID of device containing the file
-  uint32 v_st_mode    = 3;    // UpdateFileAttrRqstMsg: File mode
-  uint32 v_st_nlink   = 4;    // UpdateFileAttrRqstMsg: Number of hard links
-  uint32 v_st_uid     = 5;    // UpdateFileAttrRqstMsg: User ID of the owner
-  uint32 v_st_gid     = 6;    // UpdateFileAttrRqstMsg: Group ID of the owner
-  uint32 v_st_rdev    = 7;    // UpdateFileAttrRqstMsg: Device ID (IFF special file)
-  uint64 v_st_size    = 8;    // UpdateFileAttrRqstMsg: Total size in bytes
-  uint32 v_st_blksize = 9;    // UpdateFileAttrRqstMsg: Number of 512B blocks allocated
-  uint64 v_st_atime   = 10;   // UpdateFileAttrRqstMsg: Time of last access
-  uint64 v_st_mtime   = 11;   // UpdateFileAttrRqstMsg: Time of last modification
-  uint64 v_st_ctime   = 12;   // UpdateFileAttrRqstMsg: Time of last status change
+  string file      = 1;      // UpdateFileAttrRqstMsg: Path to the file requested
+  FileAttr attr    = 2;      // UpdateFileAttrRqstMsg: File attribute message block
 }
 
 // -- Update File Attribute Response
 message UpdateFileAttrRspMsg {
-  bool success      = 1;      // UpdateFileAttrRspMsg: Was the request successful? 
+  bool success      = 1;     // UpdateFileAttrRspMsg: Was the request successful? 
+}
+
+// -- Mkdir Request
+message MkdirRqstMsg {
+  string dir        = 1;    // MkdirRqstMsg: Path to the requested directory to create
+}
+
+// -- Mkdir Response
+message MkdirRspMsg {
+  bool success      = 3;    // MkdirRspMsg: Was the request successful?
+}
+
+// -- File Open Request
+message FileCreateRqstMsg {
+  string path       = 1;    // FileCreateRqstMsg: Path to the file to create
+  FileAttr attr     = 2;    // FileCreateRqstMsg: File attributes
+}
+
+// -- File Open Response
+message FileCreateRspMsg {
+  string server     = 1;    // FileCreateRspMsg: Name of the data server
+  bool success      = 2;    // FileCreateRspMsg: Was the request successful?
 }
 
 // -- File I/O Request
 message FileIORqstMsg {
-  string file       = 1;      // FileIORqstMsg: Path to the file requested for I/O
-  bool write        = 2;      // FileIORqstMsg: Is this request a write request?
+  string file       = 1;    // FileIORqstMsg: Path to the file requested for I/O
+  bool write        = 2;    // FileIORqstMsg: Is this request a write request?
+  MsgAttr type      = 3;    // FileIORqstMsg: File attribute message block
 }
 
 // -- File I/O Response
@@ -92,6 +159,60 @@ message FileIORspMsg {
   string server     = 1;      // FileIORspMsg: Name of the data server
   uint64 len        = 2;      // FileIORspMsg: Number of bytes in the file
   bool success      = 3;      // FileIORspMsg: Was the request successful?
+}
+
+// -- File Remove Request
+message FileRmRqstMsg {
+  string file       = 1;      // FileRmRqstMsg: Path to the file requested for removal
+  MsgAttr type      = 2;      // FileRmRqstMsg: File attribute message block
+}
+
+// -- File Remove Response
+message FileRmRspMsg {
+  bool success      = 1;      // FileRmRspMsg: Was the request successful?
+}
+
+// -- File Rename Request
+message FileRenameRqstMsg {
+  string orig       = 1;      // FileRenameRqstMsg: Original file name
+  string new        = 2;      // FileRenameRqstMsg: New file name
+}
+
+// -- File Rename Response
+message FileRenameRspMsg {
+  bool success      = 1;      // FileRenameRspMsg: Was the request successful?
+}
+
+// -- File Link Request
+message FileLinkRqstMsg {
+  string orig       = 1;      // FileLinkRqstMsg: Original file name
+  string link       = 2;      // FileLinkRqstMsg: Link Name
+  MsgAttr type      = 3;      // FileLinkRqstMsg: Type of link to request
+}
+
+// -- File Link Response Message
+message FileLinkRspMsg {
+  bool success      = 1;      // FileLinkRspMsg: Was the request successful?
+}
+
+// -- File System Stat Request
+message FSStatRqstMsg {
+  string filesys    = 1;      // FSStatRqstMsg: file system to stat
+}
+
+// -- File System Stat Response
+message FSStatRspMsg {
+  FileSysAttr attr  = 1;      // FSStatRspMsg: File system stat data
+}
+
+// -- File Release Request
+message FileReleaseRqst{
+  string file       = 1;      // FileReleaseRqst: Path to the open file
+}
+
+// -- File Release Response
+message FileReleaseRsp{
+  bool success      = 1;      // FileReleaseRsp: Was the request successful?
 }
 
 // ------------ CLIENT ==> DATA STORE MESSAGES
@@ -104,16 +225,16 @@ message ClientIOReadRqstMsg {
 
 // -- Client Read Response
 message ClientIOReadRspMsg {
-  string file       = 1;      // ClientIOReadRqstMsg: Path to the file requested for I/O
-  // TODO : data payload
+  string file                = 1; // ClientIOReadRspMsg: Path to the file requested for I/O
+  repeated FileBuffer buffer = 2; // ClientIOReadRspMsg: Response buffer
 }
 
 // -- Client Write Request
 message ClientIOWriteRqstMsg {
-  string file       = 1;      // ClientIOWriteRqstMsg: Path to the file requested for I/O
-  uint64 offset     = 2;      // ClientIOWriteRqstmsg: Starting offset to write to
-  uint64 len        = 3;      // ClientIOWriteRqstMsg: Number of bytes to write
-  // TODO : data payload
+  string file                = 1; // ClientIOWriteRqstMsg: Path to the file requested for I/O
+  uint64 offset              = 2; // ClientIOWriteRqstmsg: Starting offset to write to
+  uint64 len                 = 3; // ClientIOWriteRqstMsg: Number of bytes to write
+  repeated FileBuffer buffer = 4; // ClientIOReadRspMsg: Response buffer
 }
 
 // -- Client Write Response

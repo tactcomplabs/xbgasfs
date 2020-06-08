@@ -28,5 +28,9 @@ target_link_libraries(BGASFSClient protobuf grpc++ grpc++_reflection dl)
 set_target_properties(BGASFSClient PROPERTIES LINKER_LANGUAGE CXX)
 
 install(TARGETS BGASFSClient ARCHIVE DESTINATION lib)
+install(DIRECTORY "."
+        DESTINATION "include/BGASFSClient"
+        FILES_MATCHING
+        PATTERN "*.hpp")
 
 #-- EOF
