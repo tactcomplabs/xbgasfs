@@ -5,12 +5,20 @@
 ## Prerequisites
 * C++14 Compiler (LLVM/Clang and GCC are tested)
 * CMake 3.4.3+
-* gRPC [https://grpc.io/]
+* gRPC [https://grpc.io/]: See installation directions here [https://grpc.io/docs/languages/cpp/quickstart/]
 * libfuse (or compatible variants such as FUSE for macOS)
 
 ## Supported libfuse implementations
 * libfuse : https://github.com/libfuse/libfuse
 * FUSE for macOS : https://osxfuse.github.io/
+
+## Ubuntu
+Install the following packages prior to building for Ubuntu:
+`sudo apt-get install libfuse-dev build-essential autoconf libtool pkg-config`
+
+## Darwin (macOS)
+Install the following packages prior to building for macOS:
+`brew install autoconf automake libtool pkg-config`
 
 ## Building
 
@@ -48,7 +56,6 @@ Building xBGAS-FS with Clang/LLVM can be done by setting the CC and CXX environm
 export CC=clang
 export CXX=clang++
 ```
-
 
 ## CMake Build Options
 
@@ -102,7 +109,7 @@ section above.  Any new directives must be documented in this Readme file within
 request.
 
 ## License
-CoreGen is licensed under an Apache-style license - see the [LICENSE](LICENSE) file for details
+xBGAS-FS is licensed under an Apache-style license - see the [LICENSE](LICENSE) file for details
 
 ## Authors
 * *John Leidel* - *Chief Scientist* - [Tactical Computing Labs](http://www.tactcomplabs.com)
