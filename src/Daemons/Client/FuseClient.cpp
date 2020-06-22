@@ -15,7 +15,9 @@
 #include <config.h>
 #endif
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 
 #ifdef linux
 #define _XOPEN_SOURCE 700
@@ -102,8 +104,10 @@ static void *xmp_init(struct fuse_conn_info *conn){
     exit(EXIT_FAILURE);
   }
 
+#if 0
   FUSE_ENABLE_SETVOLNAME(conn);
   FUSE_ENABLE_XTIMES(conn);
+#endif
 
 #ifdef FUSE_ENABLE_CASE_INSENSITIVE
   if( xmp.case_insensitive ){
@@ -465,39 +469,39 @@ void handler(int signum){
 }
 
 static const struct fuse_operations xmp_oper = {
-	.init           = xmp_init,
 	.getattr	= xmp_getattr,
-	.access		= xmp_access,
 	.readlink	= xmp_readlink,
-	.readdir	= xmp_readdir,
 	.mknod		= xmp_mknod,
 	.mkdir		= xmp_mkdir,
-	.symlink	= xmp_symlink,
 	.unlink		= xmp_unlink,
 	.rmdir		= xmp_rmdir,
+	.symlink	= xmp_symlink,
 	.rename		= xmp_rename,
 	.link		= xmp_link,
 	.chmod		= xmp_chmod,
 	.chown		= xmp_chown,
 	.truncate	= xmp_truncate,
-#ifdef HAVE_UTIMENSAT
-	.utimens	= xmp_utimens,
-#endif
 	.open		= xmp_open,
-	.create 	= xmp_create,
 	.read		= xmp_read,
 	.write		= xmp_write,
 	.statfs		= xmp_statfs,
 	.release	= xmp_release,
 	.fsync		= xmp_fsync,
-#ifdef HAVE_POSIX_FALLOCATE
-	.fallocate	= xmp_fallocate,
-#endif
 #ifdef HAVE_SETXATTR
 	.setxattr	= xmp_setxattr,
 	.getxattr	= xmp_getxattr,
 	.listxattr	= xmp_listxattr,
 	.removexattr	= xmp_removexattr,
+#endif
+	.readdir	= xmp_readdir,
+	.init           = xmp_init,
+	.access		= xmp_access,
+	.create 	= xmp_create,
+#ifdef HAVE_POSIX_FALLOCATE
+	.fallocate	= xmp_fallocate,
+#ifdef HAVE_UTIMENSAT
+	.utimens	= xmp_utimens,
+#endif
 #endif
 #ifdef HAVE_COPY_FILE_RANGE
 	.copy_file_range = xmp_copy_file_range,

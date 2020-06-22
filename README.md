@@ -14,7 +14,10 @@
 
 ## Ubuntu
 Install the following packages prior to building for Ubuntu:
-`sudo apt-get install libfuse-dev build-essential autoconf libtool pkg-config`
+`sudo apt-get install libfuse-dev build-essential autoconf libtool pkg-config autoconf automake libtool curl unzip libgoogle-glog-dev`
+
+Set the path to use the Protobuf installation from the GRPC install.
+`export PATH=/path/to/grpc/bin`
 
 ## Darwin (macOS)
 Install the following packages prior to building for macOS:

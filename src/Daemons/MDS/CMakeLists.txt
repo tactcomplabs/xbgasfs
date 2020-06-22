@@ -24,7 +24,8 @@ link_directories(${GRPC_LIB_PATH})
 
 add_executable(BGASMDS ${MDSSrcs})
 
-target_link_libraries(BGASMDS BGASRPC glog)
+#target_link_libraries(BGASMDS BGASRPC glog gpr grpc++_reflection grpc++ grpc gpr upb protobuf)
+target_link_libraries(BGASMDS BGASRPC ${XBGASFS_LIBS})
 
 install(TARGETS BGASMDS RUNTIME DESTINATION bin)
 

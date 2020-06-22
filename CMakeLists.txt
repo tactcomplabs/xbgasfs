@@ -30,7 +30,7 @@ include(FindProtobuf REQUIRED)
 #------------------------------------------------------------------------
 
 # Require C++11
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -D_THREAD_SAFE")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -D_THREAD_SAFE -pthread")
 
 # Debug flags
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -DDBEUG")
@@ -43,13 +43,16 @@ message(STATUS "Building for ${CMAKE_SYSTEM_NAME}")
 if(NOT GRPC_INSTALL_PATH)
   set(GRPC_LIB_PATH "/usr/local/lib")
   set(GRPC_INCLUDE_PATH "/usr/local/include")
+  set(GRPC_CPP_PLUGIN "/usr/local/bin/grpc_cpp_plugin")
 else()
   set(GRPC_LIB_PATH "${GRPC_INSTALL_PATH}/lib")
   set(GRPC_INCLUDE_PATH "${GRPC_INSTALL_PATH}/include")
+  set(GRPC_CPP_PLUGIN "${GRPC_INSTALL_PATH}/bin/grpc_cpp_plugin")
 endif()
 
 message(STATUS "GRPC_LIB_PATH set to ${GRPC_LIB_PATH}")
 message(STATUS "GRPC_INCLUDE_PATH set to ${GRPC_INCLUDE_PATH}")
+message(STATUS "GRPC_CPP_PLUGIN set to ${GRPC_CPP_PLUGIN}")
 
 # Set the libFuse paths
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
@@ -63,8 +66,14 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
   endif()
   set(FUSE_CFLAGS "-DFUSE_USE_VERSION=26 -D_FILE_OFFSET_BITS=64 -D_DARWIN_USE_64_BIT_INODE")
   set(FUSE_LIBS "osxfuse")
+  set(XBGASFS_LIBS "-lglog")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSE_OSX")
 else()
   # -- Linux/BSD
+  set(FUSE_CFLAGS "-DFUSE_USE_VERSION=26 -D_FILE_OFFSET_BITS=64")
+  set(FUSE_LIBS "fuse")
+  set(XBGASFS_LIBS "-lglog -lgrpc++ -lgrpc -lgpr -lupb -laddress_sorting -lssl -lcrypto -lcares -lz -labsl_bad_optional_access -labsl_str_format_internal -labsl_strings -labsl_strings_internal -labsl_base -labsl_spinlock_wait -labsl_dynamic_annotations -labsl_int128 -labsl_throw_delegate -labsl_raw_logging_internal -labsl_log_severity")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSE_BSDNIX")
 endif()
 
 message(STATUS "FUSE_INCLUDE_PATH set to ${FUSE_INCLUDE_PATH}")
