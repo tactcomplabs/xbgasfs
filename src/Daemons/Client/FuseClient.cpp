@@ -468,46 +468,46 @@ void handler(int signum){
   exit(EXIT_SUCCESS);
 }
 
-static const struct fuse_operations xmp_oper = {
-	.getattr	= xmp_getattr,
-	.readlink	= xmp_readlink,
-	.mknod		= xmp_mknod,
-	.mkdir		= xmp_mkdir,
-	.unlink		= xmp_unlink,
-	.rmdir		= xmp_rmdir,
-	.symlink	= xmp_symlink,
-	.rename		= xmp_rename,
-	.link		= xmp_link,
-	.chmod		= xmp_chmod,
-	.chown		= xmp_chown,
-	.truncate	= xmp_truncate,
-	.open		= xmp_open,
-	.read		= xmp_read,
-	.write		= xmp_write,
-	.statfs		= xmp_statfs,
-	.release	= xmp_release,
-	.fsync		= xmp_fsync,
+/// FuseClient: InitFuseStruct
+void InitFuseStruct( struct fuse_operations &xmp_oper ){
+  xmp_oper.getattr	= xmp_getattr;
+  xmp_oper.readlink	= xmp_readlink;
+  xmp_oper.mknod        = xmp_mknod;
+  xmp_oper.mkdir	= xmp_mkdir;
+  xmp_oper.unlink       = xmp_unlink;
+  xmp_oper.rmdir	= xmp_rmdir;
+  xmp_oper.symlink	= xmp_symlink;
+  xmp_oper.rename	= xmp_rename;
+  xmp_oper.link		= xmp_link;
+  xmp_oper.chmod	= xmp_chmod;
+  xmp_oper.chown	= xmp_chown;
+  xmp_oper.truncate	= xmp_truncate;
+  xmp_oper.open		= xmp_open;
+  xmp_oper.read		= xmp_read;
+  xmp_oper.write	= xmp_write;
+  xmp_oper.statfs	= xmp_statfs;
+  xmp_oper.release	= xmp_release;
+  xmp_oper.fsync	= xmp_fsync;
 #ifdef HAVE_SETXATTR
-	.setxattr	= xmp_setxattr,
-	.getxattr	= xmp_getxattr,
-	.listxattr	= xmp_listxattr,
-	.removexattr	= xmp_removexattr,
+  xmp_oper.setxattr	= xmp_setxattr;
+  xmp_oper.getxattr	= xmp_getxattr;
+  xmp_oper.listxattr	= xmp_listxattr;
+  xmp_oper.removexattr	= xmp_removexattr;
 #endif
-	.readdir	= xmp_readdir,
-	.init           = xmp_init,
-	.access		= xmp_access,
-	.create 	= xmp_create,
+  xmp_oper.readdir	= xmp_readdir;
+  xmp_oper.init         = xmp_init;
+  xmp_oper.access	= xmp_access;
+  xmp_oper.create 	= xmp_create;
 #ifdef HAVE_POSIX_FALLOCATE
-	.fallocate	= xmp_fallocate,
+  xmp_oper.fallocate	= xmp_fallocate;
 #ifdef HAVE_UTIMENSAT
-	.utimens	= xmp_utimens,
+  xmp_oper.utimens	= xmp_utimens;
 #endif
 #endif
 #ifdef HAVE_COPY_FILE_RANGE
-	.copy_file_range = xmp_copy_file_range,
+  xmp_oper.copy_file_range = xmp_copy_file_range;
 #endif
-};
-
+}
 
 /// FuseClient: ValidateConfig
 bool ValidateConfig(){
@@ -589,6 +589,10 @@ void FuseClientDaemon(std::string ServerConfig,
   // server is setup, start the file system
   int res = 0;
   struct fuse_args args = FUSE_ARGS_INIT(argc,argv);
+
+  // init the fuse structure
+  struct fuse_operations xmp_oper = {0};
+  InitFuseStruct(xmp_oper);
 
   xmp.case_insensitive = 0;
   if( fuse_opt_parse(&args, &xmp, xmp_opts, NULL) == -1){
